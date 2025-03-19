@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI-Powered Surf Trip Finder</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; padding: 20px; }
+        .container { max-width: 600px; margin: auto; }
+        input, select, button { width: 100%; padding: 10px; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Find Your Perfect Surf Trip</h1>
+        <form id="surfForm">
+            <label for="budget">Budget ($):</label>
+            <input type="number" id="budget" name="budget" placeholder="Enter your budget" required>
+
+            <label for="waveSize">Preferred Wave Size:</label>
+            <select id="waveSize">
+                <option value="waist">Waist High</option>
+                <option value="shoulder">Shoulder High</option>
+                <option value="head">Head High</option>
+                <option value="overhead">Overhead</option>
+                <option value="head_and_half">Head and a Half to Double Overhead</option>
+                <option value="overhead_plus">Overhead+</option>
+            </select>
+
+            <label for="waterTemp">Preferred Water Temperature:</label>
+            <select id="waterTemp">
+                <option value="75_plus">75°F+</option>
+                <option value="65_plus">65°F+</option>
+                <option value="55_plus">55°F+</option>
+                <option value="any">Any</option>
+            </select>
+
+            <label for="location">Choose Location:</label>
+            <select id="location">
+                <option value="9.7489,-83.7534">Costa Rica</option>
+                <option value="-8.4095,115.1889">Bali</option>
+                <option value="21.3069,-157.8583">Hawaii</option>
+                <option value="38.7169,-9.1399">Portugal</option>
+                <option value="20.6597,-105.2519">Mexico</option>
+            </select>
+
+            <label for="dates">Start Date:</label>
+            <input type="date" id="dates" name="dates">
+
+            <label for="duration">Trip Duration (Days):</label>
+            <input type="number" id="duration" name="duration" placeholder="Enter number of days" required>
+
+            <button type="button" onclick="findSurfTrips()">Find Surf Spots</button>
+            <button type="button" onclick="getWindData()">Get Forecast</button>
+        </form>
+
+        <h2>Recommended Surf Destinations:</h2>
+        <div id="results"></div>
+
+        <h2>5-Day Wind Forecast:</h2>
+        <div id="windResults">Loading...</div>
+    </div>
+
+    <script>
+        const windyApiKey = "f3DHHeTzTid4u89WBJZEDoFCY0BBpfxE"; // Replace with your actual Windy API key
+
+        function getWindData() {
+            let location = document.getElementById("location").value.split(",");
+            let lat = location[0];
+            let lon = location[1];
+            const url = `https://api.windy.com/api/point-forecast/v2?lat=${lat}&lon=${lon}&model=gfs&parameters=wind,swell&key=${windyApiKey}`;
+
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    let windForecast = "";
+                    for (let i = 0; i < 5; i++) {
+                        windForecast += `<p><strong>Day ${i + 1}:</strong> Wind Speed: ${data.wind_10m[i]} m/s, Wind Direction: ${data.wind_dir_10m[i]}°, Swell Height: ${data.swell1_height[i]} m</p>`;
+                    }
+                    document.getElementById("windResults").innerHTML = windForecast;
+                })
+                .catch(error => {
+                    document.getElementById("windResults").innerHTML = "Error fetching wind data.";
+                    console.error("Windy API Error:", error);
+                });
+        }
+
+        function findSurfTrips() {
+            let budget = document.getElementById("budget").value;
+            let waveSize = document.getElementById("waveSize").value;
+            let waterTemp = document.getElementById("waterTemp").value;
+            let duration = document.getElementById("duration").value;
+            
+            let destinations = [
+                { name: "Bali", waveSize: "shoulder", waterTemp: "75_plus", budget: 1500 },
+                { name: "Hawaii", waveSize: "overhead", waterTemp: "75_plus", budget: 2000 },
+                { name: "Portugal", waveSize: "head", waterTemp: "65_plus", budget: 1200 },
+                { name: "Mexico", waveSize: "waist", waterTemp: "75_plus", budget: 1000 }
+            ];
+            
+            let filtered = destinations.filter(d => d.waveSize === waveSize && d.waterTemp === waterTemp && d.budget <= budget);
+            
+            let resultsDiv = document.getElementById("results");
+            resultsDiv.innerHTML = filtered.length ? filtered.map(d => `<p>${d.name} - ${duration} Days</p>`).join('') : "No results found.";
+        }
+    </script>
+</body>
+</html>
