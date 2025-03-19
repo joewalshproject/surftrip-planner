@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI-Powered Surf Trip Finder</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; padding: 20px; }
+        .container { max-width: 600px; margin: auto; }
+        input, select, button { width: 100%; padding: 10px; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Find Your Perfect Surf Trip</h1>
+        <form id="surfForm">
+            <label for="location">Choose Location in Costa Rica:</label>
+            <select id="location">
+                <option value="10.2993,-85.8371">Tamarindo</option>
+                <option value="9.9792,-85.6536">Nosara</option>
+                <option value="9.6596,-85.1673">Santa Teresa</option>
+                <option value="9.2497,-83.8662">Dominical</option>
+                <option value="9.6569,-82.7539">Puerto Viejo</option>
+            </select>
+
+            <button type="button" onclick="getWindData()">Get 5-Day Wind Forecast</button>
+        </form>
+
+        <h2>5-Day Wind Forecast:</h2>
+        <div id="windResults">Loading...</div>
+    </div>
+
+    <script>
+        function getWindData() {
+            let location = document.getElementById("location").value.split(",");
+            let lat = parseFloat(location[0]);
+            let lon = parseFloat(location[1]);
+
+            const noaaUrl = `https://api.weather.gov/points/${lat},${lon}`;
+
+            console.log("Fetching NOAA API metadata from:", noaaUrl);
+
+            fetch(noaaUrl)
+                .then(response => {
+                    if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+                    return response.json();
+                })
+                .then(data => {
+                    const forecastUrl = data.properties.forecastHourly;
+                    console.log("Fetching NOAA Forecast from:", forecastUrl);
+                    return fetch(forecastUrl);
+                })
+                .then(response => {
+                    if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+                    return response.json();
+                })
+                .then(data => {
+                    console.log("NOAA Forecast Data:", data);
+                    const periods = data.properties.periods;
+                    let windForecast = "<ul>";
+                    for (let i = 0; i < 5; i++) {
+                        windForecast += `<li><strong>Day ${i + 1}:</strong> Wind Speed: ${periods[i].windSpeed}, Wind Direction: ${periods[i].windDirection}</li>`;
+                    }
+                    windForecast += "</ul>";
+                    document.getElementById("windResults").innerHTML = windForecast;
+                })
+                .catch(error => {
+                    document.getElementById("windResults").innerHTML = "Error fetching wind data. Check the console for more details.";
+                    console.error("NOAA API Error:", error);
+                });
+        }
+    </script>
+</body>
+</html>
