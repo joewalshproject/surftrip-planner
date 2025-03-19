@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Costa Rica Surf Conditions</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;700&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: linear-gradient(to bottom, #f5f5f5, #333333);
+            color: #fff;
+            min-height: 100vh;
+        }
+        
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Oswald', sans-serif;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+        
+        .header {
+            background-color: #0077cc;
+            color: white;
+            padding: 2rem 0;
+            text-align: center;
+            border-radius: 0;
+            margin-bottom: 2rem;
+        }
+        
+        .header h1 {
+            font-size: 3rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .card {
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 2rem;
+            background-color: rgba(255, 255, 255, 0.9);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .card-header {
+            background-color: #333;
+            color: white;
+            font-weight: bold;
+            padding: 1rem;
+        }
+        
+        .btn-primary {
+            background-color: #0099ff;
+            border-color: #0099ff;
+            font-weight: bold;
+            padding: 0.75rem 1.5rem;
+            border-radius: 5px;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary:hover {
+            background-color: #0077cc;
+            border-color: #0077cc;
+            transform: translateY(-2px);
+        }
+        
+        .form-control {
+            border-radius: 5px;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+        }
+        
+        .alert {
+            border-radius: 5px;
+            padding: 1rem;
+        }
+        
+        .wave-height {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+        
+        .wave-classification {
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            display: inline-block;
+        }
+        
+        .ankle-high { background-color: #c6e2ff; color: #333; }
+        .knee-high { background-color: #99ccff; color: #333; }
+        .waist-high { background-color: #66b3ff; color: #333; }
+        .shoulder-high { background-color: #3399ff; color: white; }
+        .head-high { background-color: #0077cc; color: white; }
+        .overhead { background-color: #005599; color: white; }
+        .double-overhead { background-color: #003366; color: white; }
+        
+        .wind-good { background-color: #99cc99; color: #333; }
+        .wind-fair { background-color: #ffcc99; color: #333; }
+        .wind-poor { background-color: #ff9999; color: #333; }
+        
+        .loading-spinner {
+            width: 3rem;
+            height: 3rem;
+        }
+        
+        .surf-logo {
+            font-family: 'Oswald', sans-serif;
+            font-weight: 700;
+            font-size: 2rem;
+            color: #fff;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 1rem;
+        }
+        
+        .container {
+            max-width: 800px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="container">
+            <div class="surf-logo">Witch's Rock</div>
+            <h1>Costa Rica Surf Conditions</h1>
+            <p class="lead">Check current surf conditions at popular Costa Rican surf spots</p>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="card">
+            <div class="card-header">
+                Select Location
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <select id="location-select" class="form-select">
+                        <option value="">Choose a surf spot</option>
+                        <option value="tamarindo">Tamarindo</option>
+                        <option value="nosara">Nosara</option>
+                        <option value="playa_hermosa">Playa Hermosa de Jaco</option>
+                        <option value="santa_teresa">Santa Teresa</option>
+                        <option value="dominical">Dominical</option>
+                        <option value="puerto_viejo">Puerto Viejo</option>
+                    </select>
+                </div>
+                <button id="check-conditions" class="btn btn-primary w-100">Check Surf Conditions</button>
+            </div>
+        </div>
+
+        <div id="loading" class="text-center my-5" style="display: none;">
+            <div class="spinner-border loading-spinner text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-3">Fetching surf conditions...</p>
+        </div>
+
+        <div id="results" class="card" style="display: none;">
+            <div class="card-header">
+                <span id="location-name">Location</span> Surf Conditions
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-4">
+                            <h5>Wave Height</h5>
+                            <div class="wave-height"><span id="wave-height">0.0</span> ft</div>
+                            <div id="wave-classification" class="wave-classification waist-high">Waist High</div>
+                        </div>
+                        <div class="mb-4">
+                            <h5>Wave Period</h5>
+                            <p><span id="wave-period">0</span> seconds</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-4">
+                            <h5>Water Temperature</h5>
+                            <p><span id="water-temp">0</span>°F</p>
+                        </div>
+                        <div class="mb-4">
+                            <h5>Wind Conditions</h5>
+                            <p><span id="wind-speed">0</span> mph from <span id="wind-direction">N</span></p>
+                            <div id="wind-quality" class="wave-classification wind-good">Good</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="error-message" class="alert alert-danger mt-4" style="display: none;">
+            <strong>Error:</strong> <span id="error-text"></span>
+            <p>There was a problem connecting to the Open-Meteo API. Please try again later.</p>
+        </div>
+    </div>
+
+    <!-- Removed footer as requested by user -->
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Costa Rica surf locations with coordinates
+        const locations = {
+            tamarindo: {
+                name: "Tamarindo",
+                lat: 10.2992,
+                lon: -85.8371
+            },
+            nosara: {
+                name: "Nosara",
+                lat: 9.9804,
+                lon: -85.6757
+            },
+            playa_hermosa: {
+                name: "Playa Hermosa de Jaco",
+                lat: 9.5734,
+                lon: -84.5806
+            },
+            santa_teresa: {
+                name: "Santa Teresa",
+                lat: 9.6433,
+                lon: -85.1683
+            },
+            dominical: {
+                name: "Dominical",
+                lat: 9.2525,
+                lon: -83.8585
+            },
+            puerto_viejo: {
+                name: "Puerto Viejo",
+                lat: 9.6589,
+                lon: -82.7545
+            }
+        };
+
+        // Convert meters to feet
+        function metersToFeet(meters) {
+            return meters * 3.28084;
+        }
+        
+        // Convert Celsius to Fahrenheit
+        function celsiusToFahrenheit(celsius) {
+            return (celsius * 9/5) + 32;
+        }
+        
+        // Convert m/s to mph
+        function msToMph(ms) {
+            return ms * 2.23694;
+        }
+
+        // Get wave height classification
+        function getWaveClassification(heightFeet) {
+            if (heightFeet < 1) return { text: "Ankle High", class: "ankle-high" };
+            if (heightFeet < 2) return { text: "Knee High", class: "knee-high" };
+            if (heightFeet < 3) return { text: "Waist High", class: "waist-high" };
+            if (heightFeet < 5) return { text: "Shoulder High", class: "shoulder-high" };
+            if (heightFeet < 6) return { text: "Head High", class: "head-high" };
+            if (heightFeet < 8) return { text: "Overhead", class: "overhead" };
+            return { text: "Double Overhead+", class: "double-overhead" };
+        }
+
+        // Get wind direction as text
+        function getWindDirection(degrees) {
+            const directions = ["N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE", "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW", "N"];
+            const index = Math.round(degrees / 22.5);
+            return directions[index];
+        }
+
+        // Get wind quality based on speed and direction
+        function getWindQuality(speedMph, waveDirDegrees, windDirDegrees) {
+            // Calculate the difference between wind direction and wave direction
+            const diff = Math.abs(windDirDegrees - waveDirDegrees);
+            const normalizedDiff = diff > 180 ? 360 - diff : diff;
+            
+            // Offshore wind (blowing from land to sea, opposite to wave direction)
+            if (normalizedDiff > 135 && normalizedDiff <= 180) {
+                return { text: "Good - Offshore", class: "wind-good" };
+            }
+            // Cross-shore wind
+            else if ((normalizedDiff > 45 && normalizedDiff <= 135)) {
+                return { text: "Fair - Cross-shore", class: "wind-fair" };
+            }
+            // Onshore wind (blowing from sea to land, same as wave direction)
+            else {
+                // Strong onshore is worse than light onshore
+                if (speedMph > 15) {
+                    return { text: "Poor - Strong Onshore", class: "wind-poor" };
+                } else {
+                    return { text: "Fair - Light Onshore", class: "wind-fair" };
+                }
+            }
+        }
+
+        // Display surf conditions
+        function displaySurfConditions(locationId, conditions) {
+            const location = locations[locationId];
+            
+            // Convert to imperial units
+            const waveHeightFeet = metersToFeet(conditions.wave_height).toFixed(1);
+            const waterTempF = celsiusToFahrenheit(conditions.water_temp).toFixed(1);
+            const windSpeedMph = msToMph(conditions.wind_speed).toFixed(1);
+            
+            // Get classifications and text descriptions
+            const waveClass = getWaveClassification(waveHeightFeet);
+            const windDirection = getWindDirection(conditions.wind_direction);
+            const windQuality = getWindQuality(windSpeedMph, conditions.wave_direction, conditions.wind_direction);
+            
+            // Update the DOM
+            document.getElementById('location-name').textContent = location.name;
+            document.getElementById('wave-height').textContent = waveHeightFeet;
+            document.getElementById('wave-period').textContent = conditions.wave_period.toFixed(1);
+            document.getElementById('water-temp').textContent = waterTempF;
+            document.getElementById('wind-speed').textContent = windSpeedMph;
+            document.getElementById('wind-direction').textContent = windDirection;
+            
+            // Update classifications with proper styling
+            const waveClassElem = document.getElementById('wave-classification');
+            waveClassElem.textContent = waveClass.text;
+            waveClassElem.className = 'wave-classification ' + waveClass.class;
+            
+            const windQualityElem = document.getElementById('wind-quality');
+            windQualityElem.textContent = windQuality.text;
+            windQualityElem.className = 'wave-classification ' + windQuality.class;
+            
+            // Show results
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('results').style.display = 'block';
+        }
+
+        // Event listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            const checkButton = document.getElementById('check-conditions');
+            const locationSelect = document.getElementById('location-select');
+            
+            checkButton.addEventListener('click', function() {
+                const locationId = locationSelect.value;
+                
+                if (!locationId) {
+                    alert('Please select a surf spot');
+                    return;
+                }
+                
+                const location = locations[locationId];
+                
+                // Show loading indicator
+                document.getElementById('results').style.display = 'none';
+                document.getElementById('error-message').style.display = 'none';
+                document.getElementById('loading').style.display = 'block';
+                
+                // Call the Open-Meteo Marine API
+                fetchSurfConditions(location.lat, location.lon, locationId);
+            });
+            
+            // Function to fetch data from Open-Meteo API
+            async function fetchSurfConditions(lat, lon, locationId) {
+                try {
+                    // Construct the API URL
+                    const apiUrl = `https://marine-api.open-meteo.com/v1/marine?latitude=${lat}&longitude=${lon}&hourly=wave_height,wave_direction,wave_period,sea_surface_temperature&current_weather=true`;
+                    
+                    // Fetch data from API
+                    const response = await fetch(apiUrl);
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! Status: ${response.status}`);
+                    }
+                    
+                    const data = await response.json();
+                    
+                    // Process the data
+                    const currentHour = new Date().getHours();
+                    
+                    // Create conditions object with default values
+                    const conditions = {
+                        wave_height: data.hourly.wave_height[currentHour] || 1.0,
+                        wave_direction: data.hourly.wave_direction[currentHour] || 180,
+                        wave_period: data.hourly.wave_period[currentHour] || 10,
+                        water_temp: data.hourly.sea_surface_temperature[currentHour] || 26,
+                        wind_speed: 10,
+                        wind_direction: 180
+                    };
+                    
+                    // Add wind data if available
+                    if (data.current_weather) {
+                        conditions.wind_speed = data.current_weather.windspeed || 10;
+                        conditions.wind_direction = data.current_weather.winddirection || 180;
+                    }
+                    
+                    // Display the conditions
+                    displaySurfConditions(locationId, conditions);
+                    
+                } catch (error) {
+                    console.error('Error fetching surf conditions:', error);
+                    document.getElementById('loading').style.display = 'none';
+                    document.getElementById('error-text').textContent = `${error.message}`;
+                    document.getElementById('error-message').style.display = 'block';
+                }
+            }
+        });
+    </script>
+</body>
+</html>
